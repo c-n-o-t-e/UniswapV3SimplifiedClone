@@ -100,8 +100,7 @@ contract UniswapV3Pool {
 
         IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(
             amount0,
-            amount1,
-            ""
+            amount1
         );
 
         if (amount0 > 0 && balance0Before + amount0 > balance0())
