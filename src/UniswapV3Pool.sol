@@ -160,7 +160,7 @@ contract UniswapV3Pool {
             data
         );
 
-        if (balance1Before + uint256(amount1) < balance1())
+        if (balance1Before + uint256(amount1) > balance1())
             revert InsufficientInputAmount();
 
         IERC20(token0).transfer(recipient, uint256(-amount0));
