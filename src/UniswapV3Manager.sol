@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: UNLICENSED
+
 pragma solidity ^0.8.14;
 
-import "../src/UniswapV3Pool.sol";
-import "../src/interfaces/IERC20.sol";
+import "./UniswapV3Pool.sol";
+import "./interfaces/IERC20.sol";
 
 contract UniswapV3Manager {
     function mint(
