@@ -4,12 +4,13 @@ pragma solidity ^0.8.14;
 import {Test, console2 as console} from "forge-std/Test.sol";
 
 import "./ERC20Mintable.sol";
-import "../src/UniswapV3Pool.sol";
+import "../src/UniswapV3Manager.sol";
 
 contract UniswapV3PoolTest is Test {
     ERC20Mintable token0;
     ERC20Mintable token1;
     UniswapV3Pool pool;
+    UniswapV3Manager manager;
 
     struct TestCaseParams {
         uint256 wethBalance;
@@ -20,10 +21,12 @@ contract UniswapV3PoolTest is Test {
         uint128 liquidity;
         uint160 currentSqrtP;
         bool transferInMintCallback;
+        bool transferInSwapCallback;
         bool mintLiqudity;
     }
 
-    bool shouldTransferInCallback;
+    bool transferInMintCallback = true;
+    bool transferInSwapCallback = true;
 
     function setUp() public {
         token0 = new ERC20Mintable("Ether", "ETH", 18);
@@ -40,6 +43,7 @@ contract UniswapV3PoolTest is Test {
             liquidity: 1517882343751509868544,
             currentSqrtP: 5602277097478614198912276234240,
             transferInMintCallback: true,
+            transferInSwapCallback: true,
             mintLiqudity: true
         });
 
@@ -109,7 +113,14 @@ contract UniswapV3PoolTest is Test {
             liquidity: 1517882343751509868544,
             currentSqrtP: 5602277097478614198912276234240,
             transferInMintCallback: true,
+            transferInSwapCallback: true,
             mintLiqudity: true
+        });
+
+        UniswapV3Pool.CallbackData memory extra = UniswapV3Pool.CallbackData({
+            token0: address(token0),
+            token1: address(token1),
+            payer: address(this)
         });
 
         (uint256 poolBalance0, uint256 poolBalance1) = setupTestCase(params);
@@ -117,7 +128,11 @@ contract UniswapV3PoolTest is Test {
         token1.mint(address(this), 42 ether);
         int userBalance0Before = int(token0.balanceOf(address(this)));
 
-        (int256 amount0Delta, int256 amount1Delta) = pool.swap(address(this));
+        token1.approve(address(manager), 42 ether);
+
+        manager.swap(address(pool), abi.encode(extra));
+        int amount0Delta = -0.008396714242162444 ether;
+        int amount1Delta = 42 ether;
 
         assertEq(amount0Delta, -0.008396714242162444 ether, "invalid ETH out");
         assertEq(amount1Delta, 42 ether, "invalid USDC in");
@@ -162,23 +177,6 @@ contract UniswapV3PoolTest is Test {
         );
     }
 
-    function uniswapV3MintCallback(uint256 amount0, uint256 amount1) public {
-        if (shouldTransferInCallback) {
-            token0.transfer(msg.sender, amount0);
-            token1.transfer(msg.sender, amount1);
-        }
-    }
-
-    function uniswapV3SwapCallback(int256 amount0, int256 amount1) public {
-        if (amount0 > 0) {
-            token0.transfer(msg.sender, uint256(amount0));
-        }
-
-        if (amount1 > 0) {
-            token1.transfer(msg.sender, uint256(amount1));
-        }
-    }
-
     function setupTestCase(
         TestCaseParams memory params
     ) internal returns (uint256 poolBalance0, uint256 poolBalance1) {
@@ -192,15 +190,31 @@ contract UniswapV3PoolTest is Test {
             params.currentTick
         );
 
-        shouldTransferInCallback = params.transferInMintCallback;
+        manager = new UniswapV3Manager();
+
+        UniswapV3Pool.CallbackData memory extra = UniswapV3Pool.CallbackData({
+            token0: address(token0),
+            token1: address(token1),
+            payer: address(this)
+        });
+
+        token0.approve(address(manager), params.wethBalance);
+        token1.approve(address(manager), params.usdcBalance);
 
         if (params.mintLiqudity) {
-            (poolBalance0, poolBalance1) = pool.mint(
-                address(this),
+            manager.mint(
+                address(pool),
                 params.lowerTick,
                 params.upperTick,
-                params.liquidity
+                params.liquidity,
+                abi.encode(extra)
             );
         }
+
+        poolBalance0 = token0.balanceOf(address(pool));
+        poolBalance1 = token1.balanceOf(address(pool));
+
+        transferInMintCallback = params.transferInMintCallback;
+        transferInSwapCallback = params.transferInSwapCallback;
     }
 }
