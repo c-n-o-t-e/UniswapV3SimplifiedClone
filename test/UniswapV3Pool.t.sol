@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.14;
 
-import {Test, console2 as console} from "forge-std/Test.sol";
-
+import "./TestUtils.sol";
 import "./ERC20Mintable.sol";
 import "../src/UniswapV3Manager.sol";
+import {Test, console2 as console} from "forge-std/Test.sol";
 
-contract UniswapV3PoolTest is Test {
+contract UniswapV3PoolTest is Test, TestUtils {
     ERC20Mintable token0;
     ERC20Mintable token1;
     UniswapV3Pool pool;
@@ -20,8 +20,6 @@ contract UniswapV3PoolTest is Test {
         int24 upperTick;
         uint128 liquidity;
         uint160 currentSqrtP;
-        bool transferInMintCallback;
-        bool transferInSwapCallback;
         bool mintLiqudity;
     }
 
@@ -42,8 +40,6 @@ contract UniswapV3PoolTest is Test {
             upperTick: 86129,
             liquidity: 1517882343751509868544,
             currentSqrtP: 5602277097478614198912276234240,
-            transferInMintCallback: true,
-            transferInSwapCallback: true,
             mintLiqudity: true
         });
 
@@ -112,8 +108,6 @@ contract UniswapV3PoolTest is Test {
             upperTick: 86129,
             liquidity: 1517882343751509868544,
             currentSqrtP: 5602277097478614198912276234240,
-            transferInMintCallback: true,
-            transferInSwapCallback: true,
             mintLiqudity: true
         });
 
@@ -133,9 +127,6 @@ contract UniswapV3PoolTest is Test {
         manager.swap(address(pool), abi.encode(extra));
         int amount0Delta = -0.008396714242162444 ether;
         int amount1Delta = 42 ether;
-
-        assertEq(amount0Delta, -0.008396714242162444 ether, "invalid ETH out");
-        assertEq(amount1Delta, 42 ether, "invalid USDC in");
 
         assertEq(
             token0.balanceOf(address(this)),
@@ -198,10 +189,10 @@ contract UniswapV3PoolTest is Test {
             payer: address(this)
         });
 
-        token0.approve(address(manager), params.wethBalance);
-        token1.approve(address(manager), params.usdcBalance);
-
         if (params.mintLiqudity) {
+            token0.approve(address(manager), params.wethBalance);
+            token1.approve(address(manager), params.usdcBalance);
+
             manager.mint(
                 address(pool),
                 params.lowerTick,
@@ -213,8 +204,5 @@ contract UniswapV3PoolTest is Test {
 
         poolBalance0 = token0.balanceOf(address(pool));
         poolBalance1 = token1.balanceOf(address(pool));
-
-        transferInMintCallback = params.transferInMintCallback;
-        transferInSwapCallback = params.transferInSwapCallback;
     }
 }
