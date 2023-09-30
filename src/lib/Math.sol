@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.14;
+pragma solidity 0.8.19;
 
 import "./FixedPoint96.sol";
-import "prb-math/PRBMath.sol";
+import "prb-math/Common.sol" as Common;
 
 library Math {
     /// @notice Calculates amount0 delta between two prices
@@ -104,7 +104,7 @@ library Math {
         uint256 b,
         uint256 denominator
     ) internal pure returns (uint256 result) {
-        result = PRBMath.mulDiv(a, b, denominator);
+        result = Common.mulDiv(a, b, denominator);
         if (mulmod(a, b, denominator) > 0) {
             require(result < type(uint256).max);
             result++;
