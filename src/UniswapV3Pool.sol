@@ -2,8 +2,12 @@
 
 pragma solidity ^0.8.14;
 
+import "./lib/Math.sol";
 import "./lib/Tick.sol";
+import "./lib/TickMath.sol";
 import "./lib/Position.sol";
+import "./lib/SwapMath.sol";
+import "./lib/TickBitmap.sol";
 import "./interfaces/IERC20.sol";
 import "./Interfaces/IUniswapV3MintCallback.sol";
 import "./Interfaces/IUniswapV3SwapCallback.sol";
@@ -95,8 +99,16 @@ contract UniswapV3Pool {
 
         if (amount == 0) revert ZeroLiquidity();
 
-        ticks.update(lowerTick, amount);
-        ticks.update(upperTick, amount);
+        bool flippedLower = ticks.update(lowerTick, amount);
+        bool flippedUpper = ticks.update(upperTick, amount);
+
+        if (flippedLower) {
+            tickBitmap.flipTick(lowerTick, 1);
+        }
+
+        if (flippedUpper) {
+            tickBitmap.flipTick(upperTick, 1);
+        }
 
         Position.Info storage position = positions.get(
             owner,
