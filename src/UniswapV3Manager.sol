@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.14;
+pragma solidity 0.8.19;
 
 import "./UniswapV3Pool.sol";
 import "./interfaces/IERC20.sol";
@@ -12,8 +12,8 @@ contract UniswapV3Manager {
         int24 upperTick,
         uint128 liquidity,
         bytes calldata data
-    ) public {
-        UniswapV3Pool(poolAddress_).mint(
+    ) external returns (uint256 amount0, uint256 amount1) {
+        (amount0, amount1) = UniswapV3Pool(poolAddress_).mint(
             msg.sender,
             lowerTick,
             upperTick,
@@ -27,8 +27,8 @@ contract UniswapV3Manager {
         bool zeroForOne,
         uint256 amountSpecified,
         bytes calldata data
-    ) public {
-        UniswapV3Pool(poolAddress_).swap(
+    ) external returns (int256 amount0, int256 amount1) {
+        (amount0, amount1) = UniswapV3Pool(poolAddress_).swap(
             msg.sender,
             zeroForOne,
             amountSpecified,
