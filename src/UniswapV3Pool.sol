@@ -246,7 +246,7 @@ contract UniswapV3Pool {
                 amount1,
                 data
             );
-            if (balance0Before + uint256(amount0) > balance0())
+            if (balance0Before + uint256(amount0) < balance0())
                 revert InsufficientInputAmount();
         } else {
             IERC20(token0).transfer(recipient, uint256(-amount0));
@@ -259,7 +259,7 @@ contract UniswapV3Pool {
 
             uint256 balance1Before = balance1();
 
-            if (balance1Before + uint256(amount1) > balance1())
+            if (balance1Before + uint256(amount1) < balance1())
                 revert InsufficientInputAmount();
 
             emit Swap(
