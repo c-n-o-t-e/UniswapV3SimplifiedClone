@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import "prb-math/PRBMath.sol";
+import "prb-math/common.sol" as PRBMath;
 import "./FixedPoint96.sol";
 
 library LiquidityMath {
