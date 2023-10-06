@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.19;
 
-import "bytes-utils/BytesLib.sol";
+import "solidity-bytes-utils/BytesLib.sol";
 
 library BytesLibExt {
     function toUint24(
